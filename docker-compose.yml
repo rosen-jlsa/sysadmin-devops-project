@@ -1,0 +1,42 @@
+services:
+  # --- Reverse Proxy ---
+  nginx-proxy:
+    image: nginx:latest
+    container_name: nginx_proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app1
+      - app2
+    networks:
+      - webnet
+    healthcheck:
+      test: ["CMD", "service", "nginx", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # --- App 1 (PHP/Apache image serving static html) ---
+  app1:
+    image: php:apache
+    container_name: app1_container
+    volumes:
+      - ./app1:/var/www/html
+    networks:
+      - webnet
+
+  # --- App 2 (Simple Nginx hosting static html) ---
+  app2:
+    image: nginx:alpine
+    container_name: app2_container
+    volumes:
+      - ./app2:/usr/share/nginx/html
+    networks:
+      - webnet
+
+# --- Network Definition ---
+networks:
+  webnet:
+    driver: bridge
