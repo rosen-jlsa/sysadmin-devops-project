@@ -1,0 +1,25 @@
+name: the-main-mashine
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted  # Това казва да се изпълни на твоята VM
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Copy files to project directory
+      run: |
+        # Копираме новите файлове от репото в работната папка
+        rsync -av --exclude='.git' ./ ~/my-web-project/
+
+    - name: Restart Docker Containers
+      run: |
+        cd ~/my-web-project
+        # Рестартираме контейнерите, за да отразят промените (ако има промяна в config или image)
+        # За html файлове само, не е нужен рестарт, но за пълна сигурност:
+        docker compose up -d --build
